@@ -2,6 +2,7 @@ import { pageTitle } from 'ember-page-title';
 import { LinkTo } from '@ember/routing';
 import Alert from 'ec/components/ui/alert';
 import Badge from 'ec/components/ui/badge';
+import GameRoster from 'ec/components/game-roster';
 import GameSetupForm from 'ec/components/game-setup-form';
 import { formatDateTime } from 'ec/utils/format';
 
@@ -89,6 +90,13 @@ function turnLabel(turn) {
           appear here once they have.
         </p>
       </Alert>
+    {{/if}}
+
+    {{! The roster is the game master's, and is loaded only for one. It sits
+        below the setup form so that starting the game — the thing a new game
+        needs first — is what the page opens on. }}
+    {{#if @model.game.is_gm}}
+      <GameRoster @game={{@model.game}} @players={{@model.players}} />
     {{/if}}
   </div>
 </template>

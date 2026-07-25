@@ -172,7 +172,7 @@ Two consequences worth knowing:
 | `/activate?token=…`   | none           | Redeem a magic link and set the first password.               |
 | `/dashboard`          | authenticated  | The player's games.                                           |
 | `/games`              | authenticated  | The games you are seated at.                                  |
-| `/games/:id`          | authenticated  | One game: its state, or its game master's setup form.         |
+| `/games/:id`          | authenticated  | One game: its state or setup form, plus the roster for a GM.  |
 | `/profile`            | authenticated  | Display name, time zone, password.                            |
 | `/admin`              | administrator  | Section shell; redirects to accounts.                         |
 | `/admin/accounts`     | administrator  | List, filter, invite.                                         |
@@ -198,6 +198,14 @@ what the server says: `is_gm` decides whether the setup form or the "being set
 up" message appears, and a game you have no seat at is a `404` the error route
 renders. An administrator holds no seat, so `/games/:id` is a `404` for one; the
 way to see a player's game is to impersonate them.
+
+The same `is_gm` decides whether the roster is loaded at all — the route asks
+for `/games/:id/players` only after the game says yes, because a player asking
+would get a `403` and lose the whole page to the error route. Within the roster,
+a game master's row offers no controls, matching the server's rule that a GM
+seat is an administrator's business. The missing controls are replaced by a
+sentence saying who can change that seat: a control that is merely absent reads
+as a bug, while a sentence reads as a rule.
 
 **Redirects are validated.** Ember Simple Auth records the page an anonymous
 visitor asked for and returns them to it after signing in. That destination comes

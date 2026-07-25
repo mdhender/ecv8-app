@@ -18,6 +18,13 @@ export default class GamesDetailRoute extends Route {
   @service api;
 
   async model({ game_id: gameId }) {
-    return { game: await this.api.get(`/games/${gameId}`) };
+    const game = await this.api.get(`/games/${gameId}`);
+    // The roster belongs to the game master, so whether to ask for it at all is
+    // part of the first answer. Sequential rather than parallel for that reason
+    // — a player asking would get a 403 and lose the page to the error route.
+    const players = game.is_gm
+      ? await this.api.get(`/games/${gameId}/players`)
+      : null;
+    return { game, players };
   }
 }
