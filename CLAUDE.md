@@ -191,9 +191,20 @@ The brief rules these out, and "no" is the finished answer, not a gap to fill:
 - email delivery: nothing here sends mail. The activation URL is displayed once
   for the administrator to deliver out of band, which is why
   `services/activation-links.js` holds it across the route refresh.
-- a game interface. `/dashboard` lists memberships; gameplay is not built.
 - elaborate branding or visual redesign. Responsive, accessible, light and dark
   — that is the bar, and it is already met.
+
+**A game interface is no longer on this list.** It used to say "`/dashboard`
+lists memberships; gameplay is not built", and that has been superseded:
+`/games` and `/games/:id` exist, and a game master sets a game up from the
+latter. The API side made the same move — see `../api/CLAUDE.md` § The two
+domains. Do not reinstate the old line from the brief or from an older comment.
+
+**Nothing under `/games` guards on being a game master.** The seat decides, the
+server owns the seat, and the page renders what it is told: `is_gm` chooses
+between the setup form and the "being set up" message. Adding a client-side
+check would be a second authority on a question that already has one, and it
+would be the wrong one — see `README.md` § Routes.
 
 **Do not add speculative abstractions for any of these** — no route, no service,
 no config key held open for a feature that is not being built. If a change seems

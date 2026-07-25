@@ -1,8 +1,7 @@
 import { pageTitle } from 'ember-page-title';
 import { LinkTo } from '@ember/routing';
-import Badge from 'ec/components/ui/badge';
 import Empty from 'ec/components/ui/empty';
-import { formatDateTime } from 'ec/utils/format';
+import GameCard from 'ec/components/game-card';
 
 <template>
   {{pageTitle "Dashboard"}}
@@ -11,25 +10,20 @@ import { formatDateTime } from 'ec/utils/format';
     <h1 class="text-2xl font-semibold">Dashboard</h1>
 
     <section class="space-y-4">
-      <h2 class="text-lg font-semibold">Your games</h2>
+      <div class="flex flex-wrap items-baseline justify-between gap-3">
+        <h2 class="text-lg font-semibold">Your games</h2>
+        <LinkTo
+          @route="games"
+          class="text-sm text-brand-700 underline dark:text-brand-200"
+        >
+          All games
+        </LinkTo>
+      </div>
 
       {{#if @model.memberships.length}}
         <ul class="grid gap-4 sm:grid-cols-2">
           {{#each @model.memberships as |membership|}}
-            <li
-              class="rounded-lg border border-slate-200 bg-white p-4 dark:border-slate-700 dark:bg-slate-900"
-            >
-              <div class="flex items-start justify-between gap-3">
-                <h3 class="font-medium">{{membership.game_name}}</h3>
-                <Badge @tone={{if membership.is_gm "info" "off"}}>
-                  {{if membership.is_gm "Game master" "Player"}}
-                </Badge>
-              </div>
-              <p class="mt-2 text-sm text-slate-600 dark:text-slate-300">
-                Joined
-                {{formatDateTime membership.created_at}}
-              </p>
-            </li>
+            <GameCard @membership={{membership}} />
           {{/each}}
         </ul>
       {{else}}

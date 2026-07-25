@@ -46,6 +46,12 @@ export default class AppNav extends Component {
             Dashboard
           </LinkTo>
           <LinkTo
+            @route="games"
+            class="text-sm text-slate-700 hover:underline dark:text-slate-200"
+          >
+            Games
+          </LinkTo>
+          <LinkTo
             @route="profile"
             class="text-sm text-slate-700 hover:underline dark:text-slate-200"
           >

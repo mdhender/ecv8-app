@@ -171,6 +171,8 @@ Two consequences worth knowing:
 | `/login`              | anonymous only | Sign in.                                                      |
 | `/activate?token=…`   | none           | Redeem a magic link and set the first password.               |
 | `/dashboard`          | authenticated  | The player's games.                                           |
+| `/games`              | authenticated  | The games you are seated at.                                  |
+| `/games/:id`          | authenticated  | One game: its state, or its game master's setup form.         |
 | `/profile`            | authenticated  | Display name, time zone, password.                            |
 | `/admin`              | administrator  | Section shell; redirects to accounts.                         |
 | `/admin/accounts`     | administrator  | List, filter, invite.                                         |
@@ -188,6 +190,14 @@ still gets `401` or `403`.
 
 An administrator who is impersonating counts as a non-administrator here,
 matching the server, which refuses `/admin/*` for the duration.
+
+**`/games/:id` has no game-master guard, and should not grow one.** Whether you
+may see a game, and whether you may set one up, follow from the seat you hold at
+it — which the server resolves per request from `game_player`. The page renders
+what the server says: `is_gm` decides whether the setup form or the "being set
+up" message appears, and a game you have no seat at is a `404` the error route
+renders. An administrator holds no seat, so `/games/:id` is a `404` for one; the
+way to see a player's game is to impersonate them.
 
 **Redirects are validated.** Ember Simple Auth records the page an anonymous
 visitor asked for and returns them to it after signing in. That destination comes

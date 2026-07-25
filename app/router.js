@@ -12,6 +12,12 @@ Router.map(function () {
   this.route('dashboard');
   this.route('profile');
 
+  // A game gets its own URL for the same reason an account does: it is a place
+  // a player returns to, reloads, and links to, not a panel inside a list.
+  this.route('games', function () {
+    this.route('detail', { path: '/:game_id' });
+  });
+
   this.route('admin', function () {
     // Nested detail routes so an account or a game has its own URL an
     // administrator can link to, reload, and use the back button with.
