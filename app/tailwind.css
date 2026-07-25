@@ -1,0 +1,36 @@
+/*
+ * Tailwind entry point.
+ *
+ * This deliberately does not live in app/styles/. Embroider's classic pipeline
+ * concatenates everything under app/styles/ into a virtual app.css that Vite
+ * never sees, so a Tailwind directive placed there would ship to the browser
+ * verbatim and no utilities would be generated. Importing this file from
+ * app/app.js instead routes it through Vite, where the Tailwind plugin runs.
+ */
+@import "tailwindcss";
+
+/*
+ * Tailwind discovers class names by scanning source files, and .gjs is not one
+ * of the extensions it scans by default. Registering the app tree explicitly is
+ * what makes utilities used inside <template> blocks survive to production.
+ * Paths are relative to this file.
+ */
+@source "./**/*.gjs";
+@source "./**/*.js";
+
+@theme {
+  --color-brand-50: oklch(97% 0.02 255deg);
+  --color-brand-100: oklch(93% 0.04 255deg);
+  --color-brand-200: oklch(86% 0.07 255deg);
+  --color-brand-500: oklch(58% 0.16 255deg);
+  --color-brand-600: oklch(51% 0.16 255deg);
+  --color-brand-700: oklch(44% 0.14 255deg);
+  --color-brand-900: oklch(29% 0.09 255deg);
+}
+
+/* A visible focus ring everywhere, because keyboard users are the reason it
+   exists and Tailwind's reset removes the browser default. */
+:focus-visible {
+  outline: 2px solid var(--color-brand-600);
+  outline-offset: 2px;
+}

@@ -1,0 +1,3 @@
+/* Application styling is Tailwind, and its entry point is app/tailwind.css,
+   which app/app.js imports so Vite processes it. See the comment there for why
+   it cannot live in this directory. Plain CSS added here still works. */
