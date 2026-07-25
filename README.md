@@ -27,11 +27,11 @@ above the two.
 
 ## Requirements
 
-| Tool  | Version | Notes                                                    |
-| ----- | ------- | -------------------------------------------------------- |
-| Node  | ≥ 20.19 | Developed on 22.x.                                       |
-| pnpm  | 11.x    | The lockfile is `pnpm-lock.yaml`; commit it.             |
-| Caddy | 2.x     | Development proxy, configured in `../api/dev/Caddyfile`. |
+| Tool  | Version | Notes                                                 |
+| ----- | ------- | ----------------------------------------------------- |
+| Node  | ≥ 20.19 | Developed on 22.x.                                    |
+| pnpm  | 11.x    | The lockfile is `pnpm-lock.yaml`; commit it.          |
+| Caddy | 2.x     | Development proxy over HTTPS; see `../api/README.md`. |
 
 Built on **Ember 7.1.0** with Embroider and Vite. JavaScript, not TypeScript.
 
@@ -44,31 +44,37 @@ Built on **Ember 7.1.0** with Embroider and Vite. JavaScript, not TypeScript.
 ## Quick start
 
 The application is developed behind a Caddy proxy so that it and the API share
-one origin, exactly as they do in production behind nginx. Three terminals:
+one origin over HTTPS, exactly as they do in production behind nginx. A
+long-running system Caddy serves `ecv8.localhost:8443` with `tls internal`; the
+site block to add is in `../api/README.md` under Development.
 
-```bash
-# 1. API, in ../api
-go run ./cmd/ecv8-api serve --memory dev --cookie-secure=false
+With Caddy already running as a service, both processes start together from a
+`Procfile.dev` in the directory above the two repositories:
 
-# 2. This application
-pnpm install
-pnpm start
-
-# 3. Proxy, in ../api
-caddy run --config dev/Caddyfile
+```
+backend: cd api && air
+frontend: cd app && pnpm start
 ```
 
-Then browse **http://localhost:8081**.
+```bash
+pnpm install
+overmind start -f Procfile.dev     # or: foreman, hivemind, two terminals
+```
+
+Then browse **https://ecv8.localhost:8443**.
 
 Do **not** browse `http://localhost:4200` directly. That bypasses the proxy, so
 the API sees a different origin, the session cookie is not sent, and nothing
 authenticates. Vite does carry a fallback `/api` proxy for that case, but the
 Caddy setup is what matches production and is what you should use.
 
-`--memory dev` gives the API a seeded in-memory database with four accounts —
-`admin@example.com/admin`, `gm1@example.com/gm1`, `user1@example.com/user1`,
-`user2@example.com/user2` — discarded when it exits. See `../api/README.md` for
-running against a real database.
+If you have no system Caddy, `../api/dev/Caddyfile` is a self-contained
+alternative on plain HTTP at `http://localhost:8081`; see `../api/README.md`.
+
+To work against a throwaway database rather than a real one, run the API with
+`--memory dev`. That gives four accounts — `admin@example.com/admin`,
+`gm1@example.com/gm1`, `user1@example.com/user1`, `user2@example.com/user2` —
+discarded when it exits.
 
 ---
 

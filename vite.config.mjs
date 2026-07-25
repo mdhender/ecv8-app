@@ -20,21 +20,22 @@ export default defineConfig({
 
   server: {
     // Bound to an explicit IPv4 address rather than the default. On macOS
-    // "localhost" resolves to ::1 first, and the development Caddyfile dials
-    // 127.0.0.1, so leaving this to the default makes the proxy fail to
-    // connect even though the dev server is running.
+    // "localhost" resolves to ::1 first, so a proxy that dials 127.0.0.1 fails
+    // to connect even though the dev server is running. Pinning the bind here
+    // makes the upstream address unambiguous whichever form the proxy uses.
     host: '127.0.0.1',
     port: 4200,
     strictPort: true,
 
-    // Development runs behind Caddy on http://localhost:8081 so the browser
-    // sees a single origin, exactly as production does behind nginx. Requests
-    // the app makes to /api/... need no proxy there: Caddy routes that prefix
-    // to the Go API before Vite ever sees it.
+    // Development runs behind Caddy on https://ecv8.localhost:8443 so the
+    // browser sees a single origin over HTTPS, exactly as production does behind
+    // nginx. Requests the app makes to /api/... need no proxy there: Caddy routes
+    // that prefix to the Go API before Vite ever sees it.
     //
-    // This proxy is the fallback for running Vite directly on :4200 without
-    // Caddy. It keeps the app usable, but the API then sees a different origin,
-    // so prefer the Caddy setup described in the README.
+    // This proxy is only the fallback for running Vite directly on :4200 with no
+    // proxy at all. It keeps the app loading, but the API then sees a different
+    // origin, so the session cookie is not sent and nothing authenticates. Use
+    // the Caddy setup described in the README.
     proxy: {
       '/api': {
         target: 'http://127.0.0.1:3000',
