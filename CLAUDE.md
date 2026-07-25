@@ -1,0 +1,157 @@
+# CLAUDE.md — working in `app/`
+
+The Ember client for ECV8. `README.md` in this directory explains _what_ the
+application is and how it is put together; read it before changing anything
+structural. This file is the shorter list of _how to work here_ — the
+conventions, the checks, and the traps.
+
+## Orientation
+
+| Question                      | Where the answer is             |
+| ----------------------------- | ------------------------------- |
+| What the app does, why        | `README.md` (this directory)    |
+| API endpoints, request shapes | `../api/README.md` § HTTP API   |
+| Ember MCP server setup        | `EMBER-MCP.md` (this directory) |
+| Original brief                | `../project-prompt.txt`         |
+
+This directory is its own git repository. `../api` is a separate one, and there
+is no parent repository above them — do not stage or commit across the two.
+
+## Use the Ember MCP server
+
+An `ember` MCP server is registered in this directory's `.mcp.json` for a
+reason: **do not write Ember code from recall.** Trained-in defaults skew toward
+classic Ember (`.hbs` files, `inject as service`, `@action`, controllers doing
+work), and none of that belongs in this codebase. Before writing components,
+templates, routers, or anything else Ember-shaped, look up the current idiom
+with `search_ember_docs` / `get_api_reference` / `get_best_practices`.
+
+Setup, refresh, and troubleshooting for that server: `EMBER-MCP.md`.
+
+## Commands
+
+Run everything from this directory. **pnpm only** — never npm or yarn; the
+lockfile is `pnpm-lock.yaml` and it is committed.
+
+```bash
+pnpm lint        # eslint + ember-template-lint + stylelint + prettier --check
+pnpm lint:fix    # fix what is fixable, then format
+pnpm build       # production build into dist/
+pnpm start       # dev server on 127.0.0.1:4200
+```
+
+**There are no tests, by design** (`README.md` § Tests). `pnpm lint && pnpm
+build` are the checks. Run both after any change and report the real output. Do
+not reintroduce QUnit, `tests/`, or `testem.cjs` unless asked to.
+
+`pnpm lint` fails on formatting, and Prettier formats inside `<template>` blocks
+via `prettier-plugin-ember-template-tag`. Finish edits with `pnpm lint:fix`
+rather than hand-aligning markup.
+
+To see a change in a browser, use the Caddy setup at
+**https://ecv8.localhost:8443** (`README.md` § Quick start). Loading
+`http://localhost:4200` directly bypasses the proxy, so the session cookie is
+never sent and nothing authenticates — anything touching auth will look broken
+for reasons that have nothing to do with your change.
+
+## Conventions this codebase already follows
+
+Match them; do not introduce a second style alongside them.
+
+- **JavaScript, not TypeScript.** No `.ts`/`.gts`.
+- **Strict-mode `.gjs` everywhere.** No `.hbs` files, no classic components, no
+  mixins, no observers, no `ember-data`. Templates and components import what
+  they use.
+- `import Component from '@glimmer/component'`, `@tracked` for state,
+  `import { service } from '@ember/service'` (never `inject as service`),
+  `import { on } from '@ember/modifier'` for events.
+- **Event handlers are arrow-function class properties**, not `@action`
+  methods — see `app/components/login-form.gjs`.
+- **Absolute module paths under the `ec` prefix** — `modulePrefix` is `ec`, so
+  it is `import Field from 'ec/components/ui/field'`, never a relative path.
+- Route templates receive `@model` and `@controller`. Pure display helpers can
+  be plain module-scope functions in the `.gjs` file (see
+  `app/templates/admin/accounts/index.gjs`).
+- **API payloads stay snake_case** — `display_name`, `is_active`,
+  `active_sessions`, `is_admin`. Do not camelCase them on the way in; templates
+  read the server's field names directly.
+- Every source file carries a block comment explaining _why_ it exists, not what
+  it does. New files should too.
+
+## Rules with teeth
+
+**All HTTP goes through `services/api.js`.** It is the only `fetch` in the app
+and owns the base path, JSON headers, `credentials: 'same-origin'`, and error
+parsing. Add a method there rather than fetching from a route or component.
+
+**Failures are `ApiError`.** It parses RFC 9457 Problem Details into `status`,
+`title`, `detail`, and a `fields` map for inline validation, plus
+`isUnauthorized` / `isForbidden` / `isGone` / `isValidation`. Forms render
+`error.fields[name]` through the `Ui::Field` component; they do not re-parse
+problem documents.
+
+**Never store authentication state on the client.** The credential is an
+`HttpOnly` cookie; `session-stores/application.js` answers `restore()` by
+asking `GET /session`. No `localStorage`, no readable cookie, no in-memory
+copy.
+
+**Never assign `session.data.authenticated`** — Ember Simple Auth reserves that
+key for authenticators. After anything that changes the session server-side
+(impersonation start/stop, editing your own profile), call
+`session.refresh()`, which re-reads `/session`.
+
+**Route guards are UX, not security.** Extend `ProtectedRoute` or `AdminRoute`
+from `app/utils/routes.js`. Never treat a guard as authorisation, and never add
+a client-side check as a substitute for one on the server — the API authorises
+every request independently.
+
+**Redirect targets are untrusted.** The post-login destination comes out of
+`sessionStorage`; anything consuming it goes through `safeRedirectPath` in
+`services/session.js`.
+
+**`apiPath` in `config/environment.js` is the one place the API's location
+lives**, and it is root-relative (`/api/v1`). Do not hardcode a path elsewhere
+and do not turn it into an absolute URL — that would require server CORS and
+`SameSite=None` cookies.
+
+**Controllers exist only to declare query parameters.** If you add a filter to a
+list route, update both the route's `queryParams` hash (with `refreshModel:
+true`) and the controller's `queryParams` array plus its default value. Filtering
+must happen server-side; filtering in the browser would only filter the current
+page.
+
+## Styling
+
+Tailwind CSS v4 via `@tailwindcss/vite`. There is **no `tailwind.config.js` and
+no PostCSS config** — the theme is `@theme` in `app/tailwind.css`.
+
+- **Do not put Tailwind directives in `app/styles/`.** Embroider concatenates
+  that directory into a virtual `app.css` that Vite never processes, so the
+  directive would ship verbatim and generate nothing. `app/tailwind.css` is
+  imported from `app/app.js` so Vite handles it.
+- If you add source outside the scanned tree, add an `@source` line — Tailwind
+  does not scan `.gjs` by default, and unregistered classes vanish from the
+  production build.
+- Brand colours are `brand-50` … `brand-900`; use them rather than new hexes.
+- **Every colour needs a `dark:` counterpart.** Light and dark are both
+  supported and reviewed.
+- Accessibility is not optional here: labelled controls (use `Ui::Field`, which
+  wires `for`/`id`, `aria-describedby`, and `aria-invalid`), `scope` on table
+  headers, `sr-only` captions, and the global `:focus-visible` ring left intact.
+
+## Adding a route — the whole checklist
+
+1. `app/router.js` — add it (detail routes nest so they have their own URL).
+2. `app/routes/<name>.js` — extend `ProtectedRoute` or `AdminRoute`; load data
+   via `this.api`.
+3. `app/controllers/<name>.js` — **only** if it has query parameters.
+4. `app/templates/<name>.gjs` — the template, importing its components.
+5. `app/components/…` — shared pieces go under `ui/`, admin-only under `admin/`.
+6. `pnpm lint:fix && pnpm lint && pnpm build`.
+7. Update the route table in `README.md`.
+
+## Local development accounts
+
+Running the API with `--memory dev` gives four throwaway accounts:
+`admin@example.com/admin`, `gm1@example.com/gm1`, `user1@example.com/user1`,
+`user2@example.com/user2`.
