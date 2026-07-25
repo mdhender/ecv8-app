@@ -244,11 +244,12 @@ and a visible focus ring.
 
 ## Tests
 
-There are none, by design, in this first version. No unit, rendering, or
-acceptance tests exist. The generated scaffolding — `tests/`, `testem.cjs`,
-QUnit, and the `test` script — was removed rather than kept as meaningless green
-checks, so `pnpm lint` and `pnpm build` are the checks that run. When tests are
-added, this section is the place to say so.
+There are none yet. No unit, rendering, or acceptance tests exist, and no
+harness is installed — the generated scaffolding (`tests/`, `testem.cjs`, QUnit,
+and the `test` script) was removed rather than kept as meaningless green checks,
+so `pnpm lint` and `pnpm build` are the checks that run. Tests are welcome;
+adding the first one means reinstating a harness, and this section is the place
+to record what it covers.
 
 ---
 

@@ -41,9 +41,17 @@ pnpm build       # production build into dist/
 pnpm start       # dev server on 127.0.0.1:4200
 ```
 
-**There are no tests, by design** (`README.md` § Tests). `pnpm lint && pnpm
-build` are the checks. Run both after any change and report the real output. Do
-not reintroduce QUnit, `tests/`, or `testem.cjs` unless asked to.
+**Tests are welcome.** Add them where they earn their keep, without asking
+first. There are none today and no harness is installed: the generated
+scaffolding — `tests/`, `testem.cjs`, QUnit, and the `test` script — was removed
+because it asserted nothing, not because tests are unwanted. Placeholders and
+tests that assert nothing are still off the table. Adding the first real test
+means reinstating a harness on purpose, so look up the current Ember idiom with
+the MCP server rather than recalling one, and record what is covered in
+`README.md` § Tests in the same change.
+
+`pnpm lint && pnpm build` are the checks. Run both after any change and report
+the real output.
 
 `pnpm lint` fails on formatting, and Prettier formats inside `<template>` blocks
 via `prettier-plugin-ember-template-tag`. Finish edits with `pnpm lint:fix`
