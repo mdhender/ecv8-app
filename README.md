@@ -33,11 +33,8 @@ above the two.
 | pnpm  | 11.x    | The lockfile is `pnpm-lock.yaml`; commit it.          |
 | Caddy | 2.x     | Development proxy over HTTPS; see `../api/README.md`. |
 
-Built on **Ember 7.1.0** with Embroider and Vite. JavaScript, not TypeScript.
-
-> The project brief asked for Ember 7.10. That release does not exist: Ember 7.0
-> shipped 2026-05-12 and 7.1.0 on 2026-06-22, and there is no 7.10 or 7.10
-> pre-release. 7.1.0 — the latest stable — is what this application uses.
+Built on **Ember 7.1.0** — the latest stable release — with Embroider and Vite.
+JavaScript, not TypeScript.
 
 ---
 

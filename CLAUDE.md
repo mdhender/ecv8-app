@@ -13,6 +13,7 @@ conventions, the checks, and the traps.
 | API endpoints, request shapes | `../api/README.md` § HTTP API   |
 | Ember MCP server setup        | `EMBER-MCP.md` (this directory) |
 | Original brief                | `../project-prompt.txt`         |
+| Rules for the API side        | `../api/CLAUDE.md`              |
 
 This directory is its own git repository. `../api` is a separate one, and there
 is no parent repository above them — do not stage or commit across the two.
@@ -47,6 +48,11 @@ not reintroduce QUnit, `tests/`, or `testem.cjs` unless asked to.
 `pnpm lint` fails on formatting, and Prettier formats inside `<template>` blocks
 via `prettier-plugin-ember-template-tag`. Finish edits with `pnpm lint:fix`
 rather than hand-aligning markup.
+
+**Ember 7.1.0, Node ≥ 20.19, pnpm 11.x** are what this is built on;
+`ember-source` and `ember-cli` are pinned at `~7.1.0`. If the local toolchain
+disagrees, stop and report it rather than bumping a pin, editing `engines`, or
+switching package managers to make an install succeed.
 
 To see a change in a browser, use the Caddy setup at
 **https://ecv8.localhost:8443** (`README.md` § Quick start). Loading
@@ -103,7 +109,10 @@ key for authenticators. After anything that changes the session server-side
 **Route guards are UX, not security.** Extend `ProtectedRoute` or `AdminRoute`
 from `app/utils/routes.js`. Never treat a guard as authorisation, and never add
 a client-side check as a substitute for one on the server — the API authorises
-every request independently.
+every request independently. The same applies to navigation: admin links stay
+hidden from non-administrators, and an impersonating administrator counts as a
+non-administrator, but that is presentation only — hiding a link protects
+nothing.
 
 **Redirect targets are untrusted.** The post-login destination comes out of
 `sessionStorage`; anything consuming it goes through `safeRedirectPath` in
@@ -137,7 +146,8 @@ no PostCSS config** — the theme is `@theme` in `app/tailwind.css`.
   supported and reviewed.
 - Accessibility is not optional here: labelled controls (use `Ui::Field`, which
   wires `for`/`id`, `aria-describedby`, and `aria-invalid`), `scope` on table
-  headers, `sr-only` captions, and the global `:focus-visible` ring left intact.
+  headers, `sr-only` captions, the skip link, a useful page title on every route
+  (`ember-page-title`), and the global `:focus-visible` ring left intact.
 
 ## Adding a route — the whole checklist
 
@@ -145,13 +155,38 @@ no PostCSS config** — the theme is `@theme` in `app/tailwind.css`.
 2. `app/routes/<name>.js` — extend `ProtectedRoute` or `AdminRoute`; load data
    via `this.api`.
 3. `app/controllers/<name>.js` — **only** if it has query parameters.
-4. `app/templates/<name>.gjs` — the template, importing its components.
+4. `app/templates/<name>.gjs` — the template, importing its components, opening
+   with `{{pageTitle "…"}}`.
 5. `app/components/…` — shared pieces go under `ui/`, admin-only under `admin/`.
-6. `pnpm lint:fix && pnpm lint && pnpm build`.
-7. Update the route table in `README.md`.
+6. Cover the states, not just the happy path: loading, empty, inline validation,
+   expired or already-redeemed link, unauthorised, and server error. A route
+   that renders only its success case is not finished.
+7. `pnpm lint:fix && pnpm lint && pnpm build`.
+8. Update the route table in `README.md`.
 
 ## Local development accounts
 
 Running the API with `--memory dev` gives four throwaway accounts:
 `admin@example.com/admin`, `gm1@example.com/gm1`, `user1@example.com/user1`,
 `user2@example.com/user2`.
+
+## Out of scope
+
+The brief rules these out, and "no" is the finished answer, not a gap to fill:
+
+- CI configuration, Dockerfiles, Docker Compose, deployment automation
+- nginx configuration — production is an operator concern; `../api/dev/Caddyfile`
+  and the system Caddy site block are the only proxy config in the projects
+- **public web-based registration.** There is no sign-up route, and `/login`
+  must not grow a "create an account" link. Administrators invite every account,
+  and the invitee arrives through `/activate?token=…`.
+- email delivery: nothing here sends mail. The activation URL is displayed once
+  for the administrator to deliver out of band, which is why
+  `services/activation-links.js` holds it across the route refresh.
+- a game interface. `/dashboard` lists memberships; gameplay is not built.
+- elaborate branding or visual redesign. Responsive, accessible, light and dark
+  — that is the bar, and it is already met.
+
+**Do not add speculative abstractions for any of these** — no route, no service,
+no config key held open for a feature that is not being built. If a change seems
+to need one, say so and stop rather than building the scaffolding.
