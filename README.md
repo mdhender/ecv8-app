@@ -242,7 +242,9 @@ and a visible focus ring.
 - **Impersonation is unmistakable.** A persistent banner names both the
   impersonated account and the real administrator, and offers a one-click exit.
   While impersonating, the admin section is inaccessible and passwords cannot be
-  changed.
+  changed. Stopping re-reads the session and then returns to `/admin/accounts`,
+  where impersonation is started from — the page underneath belonged to the
+  impersonated account, and an administrator often cannot see it at all.
 - **Magic links are shown once.** The API returns an activation URL a single
   time, because only its hash is stored and the application does not send email.
   The link is held in the `activation-links` service rather than in the form that

@@ -25,10 +25,15 @@ export default class ImpersonationBanner extends Component {
     this.error = null;
     try {
       await this.api.delete('/session/impersonation');
-      // Re-read the session before refreshing routes: the identity has changed,
-      // and any route reloaded first would be fetched as the wrong account.
+      // Re-read the session before going anywhere: the identity has changed,
+      // and a route entered first would be fetched as the wrong account.
       await this.session.refresh();
-      this.router.refresh();
+      // Back to where impersonation is started from, rather than reloading the
+      // page underneath. That page belonged to the impersonated account, and an
+      // administrator frequently cannot see it at all — /games/:id is a 404 for
+      // one, since an administrator holds no seat — so refreshing in place
+      // landed the exit on an error as often as not.
+      this.router.transitionTo('admin.accounts');
     } catch (error) {
       this.error =
         error instanceof ApiError
