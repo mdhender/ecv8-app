@@ -161,6 +161,13 @@ token anywhere in the client.
 - `services/session.js` extends Ember Simple Auth's session service with
   `account`, `isAdmin`, `isImpersonating`, and `impersonator`, plus a `refresh()`
   that re-reads the session after impersonation starts or stops.
+- `services/api.js` calls `session.expire()` on any `401` other than one from
+  `/session` itself. A session that ends mid-visit — expired, or revoked by an
+  administrator — is otherwise invisible to the client, and a client that still
+  believes it is signed in is worse off than one that knows it is not: guards
+  pass, every request fails, and `/login` redirects back to the dashboard it
+  came from. `expire()` re-reads `/session` rather than clearing anything
+  locally, so the server stays the authority.
 
 Two consequences worth knowing:
 

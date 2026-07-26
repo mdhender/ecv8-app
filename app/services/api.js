@@ -1,4 +1,4 @@
-import Service from '@ember/service';
+import Service, { service } from '@ember/service';
 import config from 'ec/config/environment';
 
 /**
@@ -50,9 +50,32 @@ export class ApiError extends Error {
  * cookie is HttpOnly, no token is ever read or held by JavaScript.
  */
 export default class ApiService extends Service {
+  @service session;
+
   /** Root-relative base path of the versioned API. */
   get base() {
     return config.apiPath;
+  }
+
+  /**
+   * Tells the session service when the server has answered "no session".
+   *
+   * This is the only place that learns of a session ending mid-visit, because
+   * it is the only place that talks to the API. Leaving each caller to notice
+   * would mean every route and form deciding for itself what a 401 implies, and
+   * the ones that forgot would leave the client convinced it was still signed
+   * in — see `expire` in the session service for what that looks like.
+   *
+   * `/session` is exempt. Its 401 is the expected answer for a signed-out
+   * visitor and is already handled where it lands: the store reads it as "no
+   * session" on page load, the authenticator as "already revoked" on sign-out.
+   * Reacting here would only ask the same question a second time, and would
+   * recurse, since asking is itself a `GET /session`.
+   */
+  async noteResponseStatus(path, status) {
+    if (status === 401 && path !== '/session') {
+      await this.session.expire();
+    }
   }
 
   /**
@@ -106,6 +129,7 @@ export default class ApiService extends Service {
     }
 
     if (!response.ok) {
+      await this.noteResponseStatus(path, response.status);
       throw new ApiError(payload, response.status);
     }
     return payload?.data ?? null;
@@ -130,6 +154,7 @@ export default class ApiService extends Service {
     const text = await response.text();
     const payload = text ? JSON.parse(text) : null;
     if (!response.ok) {
+      await this.noteResponseStatus(path, response.status);
       throw new ApiError(payload, response.status);
     }
     return { data: payload?.data ?? [], meta: payload?.meta ?? null };
