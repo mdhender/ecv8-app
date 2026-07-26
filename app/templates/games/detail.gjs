@@ -69,16 +69,20 @@ function turnLabel(turn) {
               {{formatDateTime @model.game.state.created_at}}
             </dd>
           </div>
-          <div>
-            <dt class="text-sm text-slate-600 dark:text-slate-300">Seed</dt>
-            {{! The seed is shown so a game master can record it: it is what
-                makes a turn replayable, and it can never be changed. }}
-            <dd class="font-mono text-sm break-all">
-              {{@model.game.state.seed.hi}}
-              /
-              {{@model.game.state.seed.lo}}
-            </dd>
-          </div>
+          {{! The seed is the game master's private information, so the server
+              sends it only to one. Branching on the field rather than on
+              `is_gm` keeps the server the single authority on who may see it:
+              this renders what arrived, and never asks for something absent. }}
+          {{#if @model.game.state.seed}}
+            <div>
+              <dt class="text-sm text-slate-600 dark:text-slate-300">Seed</dt>
+              <dd class="font-mono text-sm break-all">
+                {{@model.game.state.seed.hi}}
+                /
+                {{@model.game.state.seed.lo}}
+              </dd>
+            </div>
+          {{/if}}
         </dl>
       </section>
     {{else if @model.game.is_gm}}

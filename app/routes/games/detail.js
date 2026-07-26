@@ -10,6 +10,10 @@ import { service } from '@ember/service';
  * state separately would mean the page could render a game master's form from
  * one moment's answer and a player's message from another's.
  *
+ * A set-up game's `state.seed` arrives the same way: only for the game master,
+ * because a player who had it could predict the game. The template shows the
+ * field when it is there rather than deciding who deserves it.
+ *
  * A game this account has no seat at answers 404, which the error route renders.
  * That is the server's decision and the only one that matters; nothing here
  * checks it first.

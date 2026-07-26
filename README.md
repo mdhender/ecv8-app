@@ -199,6 +199,13 @@ up" message appears, and a game you have no seat at is a `404` the error route
 renders. An administrator holds no seat, so `/games/:id` is a `404` for one; the
 way to see a player's game is to impersonate them.
 
+The seed is the one field on the page not everybody gets. A game's PCG seed is
+what makes its turns reproducible, so a player holding it could run the generator
+forward and read the outcome of events before they were resolved; the server
+sends `state.seed` only to the game master's seat. The status panel branches on
+whether the field is present rather than on `is_gm`, which keeps the server the
+only thing deciding who may see it.
+
 The same `is_gm` decides whether the roster is loaded at all — the route asks
 for `/games/:id/players` only after the game says yes, because a player asking
 would get a `403` and lose the whole page to the error route. Within the roster,
