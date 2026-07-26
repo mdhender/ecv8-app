@@ -27,14 +27,23 @@ above the two.
 
 ## Requirements
 
-| Tool  | Version | Notes                                                 |
-| ----- | ------- | ----------------------------------------------------- |
-| Node  | ≥ 20.19 | Developed on 22.x.                                    |
-| pnpm  | 11.x    | The lockfile is `pnpm-lock.yaml`; commit it.          |
-| Caddy | 2.x     | Development proxy over HTTPS; see `../api/README.md`. |
+| Tool  | Version | Notes                                                                      |
+| ----- | ------- | -------------------------------------------------------------------------- |
+| Node  | ≥ 20.19 | Developed on 22.x.                                                         |
+| pnpm  | 11.x    | Lockfile `pnpm-lock.yaml` and settings `pnpm-workspace.yaml`; commit both. |
+| Caddy | 2.x     | Development proxy over HTTPS; see `../api/README.md`.                      |
 
 Built on **Ember 7.1.0** — the latest stable release — with Embroider and Vite.
 JavaScript, not TypeScript.
+
+`pnpm-workspace.yaml` holds one `overrides` entry, forcing a single patched `tmp`
+through the build toolchain. Three packages under `ember-cli` and
+`@embroider/compat` pin a version predating two path-traversal advisories, and all
+three are unmaintained at those ranges, so nothing upstream will dislodge them.
+The file explains itself at more length, including why so little of `tmp`'s API is
+involved that the override is safe. It is the settings file **because pnpm 11 no
+longer reads the `pnpm` field in `package.json`** — putting it there is ignored
+with one easily-missed warning.
 
 ---
 

@@ -1,0 +1,21 @@
+# pnpm settings for this package. There is no workspace here — this file is
+# where pnpm 11 reads its configuration from, having stopped reading the "pnpm"
+# field in package.json. Putting the override in package.json is silently
+# ignored apart from one warning, so it belongs here or nowhere.
+
+overrides:
+  # Three packages in the Ember build chain pin a `tmp` from before the two
+  # path-traversal advisories were fixed: can-symlink@1.0.0 pins 0.0.28 exactly,
+  # external-editor@3.1.0 wants ^0.0.33, and watch-detector@1.0.2 wants ^0.1.0.
+  # All three are unmaintained at those ranges, so no amount of bumping ember-cli
+  # or @embroider/compat dislodges them and an override is the only lever.
+  #
+  # Safe because of how little of `tmp` they use: `tmpNameSync()` in can-symlink
+  # and external-editor, `dirSync()` plus `.name` and `.removeCallback()` in
+  # watch-detector. All four are present and unchanged in 0.2.7.
+  #
+  # None of this ships to the browser or sits on a request path — it runs under
+  # `pnpm start` and `pnpm build` only, and both advisories need attacker-controlled
+  # option values that no call site here passes. The override is housekeeping, so
+  # the security tab reflects that.
+  tmp: ^0.2.7

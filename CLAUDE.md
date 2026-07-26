@@ -34,6 +34,13 @@ Setup, refresh, and troubleshooting for that server: `EMBER-MCP.md`.
 Run everything from this directory. **pnpm only** — never npm or yarn; the
 lockfile is `pnpm-lock.yaml` and it is committed.
 
+**pnpm settings live in `pnpm-workspace.yaml`, not in `package.json`.** pnpm 11
+stopped reading the `pnpm` field, and it does not fail — it prints one warning
+and carries on with the setting ignored, so a change made there looks like it
+worked. There is no workspace here; the file exists because that is where the
+`overrides` entry pinning a patched `tmp` has to go. It documents its own reasons,
+and `pnpm install` after touching it is what proves the override still resolves.
+
 ```bash
 pnpm lint        # eslint + ember-template-lint + stylelint + prettier --check
 pnpm lint:fix    # fix what is fixable, then format
