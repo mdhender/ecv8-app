@@ -85,21 +85,20 @@ function turnLabel(turn) {
           {{/if}}
         </dl>
 
-        {{! The map is the game master's next step after setting a game up, and
-            it is a page of its own. The link is shown only to one because the
-            endpoint behind it is theirs — a player following it would lose the
-            page to a 403. }}
-        {{#if @model.game.is_gm}}
-          <p class="mt-4">
-            <LinkTo
-              @route="games.cluster"
-              @model={{@model.game.id}}
-              class="text-sm text-brand-700 underline dark:text-brand-200"
-            >
-              Cluster
-            </LinkTo>
-          </p>
-        {{/if}}
+        {{! The map belongs to everybody at the table — it is the space they
+            are playing in, not the seed they are playing from — so the link is
+            not conditioned on the seat. It sits inside the status panel, which
+            renders only for a game that has been set up, because before that
+            there is nothing on the other end to read. }}
+        <p class="mt-4">
+          <LinkTo
+            @route="games.cluster"
+            @model={{@model.game.id}}
+            class="text-sm text-brand-700 underline dark:text-brand-200"
+          >
+            Cluster
+          </LinkTo>
+        </p>
       </section>
     {{else if @model.game.is_gm}}
       <GameSetupForm @game={{@model.game}} />

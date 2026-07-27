@@ -189,7 +189,7 @@ Two consequences worth knowing:
 | `/dashboard`          | authenticated  | The player's games.                                           |
 | `/games`              | authenticated  | The games you are seated at.                                  |
 | `/games/:id`          | authenticated  | One game: its state or setup form, plus the roster for a GM.  |
-| `/games/:id/cluster`  | authenticated  | The game's map, or the form a game master generates it with.  |
+| `/games/:id/cluster`  | authenticated  | The game's map; for its GM, the form that generates it.       |
 | `/profile`            | authenticated  | Display name, time zone, password.                            |
 | `/admin`              | administrator  | Section shell; redirects to accounts.                         |
 | `/admin/accounts`     | administrator  | List, filter, invite.                                         |
@@ -232,19 +232,30 @@ sentence saying who can change that seat: a control that is merely absent reads
 as a bug, while a sentence reads as a rule.
 
 **`/games/:id/cluster` is a sibling of the detail route, not a child of it.** A
-game's map is a page a game master returns to, and a hundred stelliums is not a
-panel to hang off the page a game is started from. It has no game-master guard
-either, for the same reason nothing else under `/games` does: the endpoint
-behind it is the game master's, so a player at the same table is answered `403`
-and an unseated account `404`, and the error route renders both. The link to it
-appears only on a game master's copy of `/games/:id`, which is presentation and
-protects nothing.
+game's map is a page people return to, and a hundred stelliums is not a panel to
+hang off the page a game is started from. It has no guard, for the same reason
+nothing else under `/games` does: an account with no seat is answered `404` by
+the endpoint and the error route renders it.
 
-The page renders whichever of four states the server describes — the map, the
-generate form, "not set up yet", or "closed" — and derives none of them. A
+**One page serves a player and a game master**, because it is one map. Space
+being a known shape is what makes a course worth plotting, and unlike the seed a
+coordinate list says nothing about the future — a player reads exactly the
+coordinates and ids their game master does, since anything else would make every
+report they were sent unreadable. A second route rendering the same map at a
+second URL would be two pages to keep in step for no difference a reader could
+see. The link on `/games/:id` is therefore not conditioned on the seat either;
+it sits in the status panel, which appears only once a game has been set up,
+because before that there is nothing on the other end to read.
+
+The page renders whichever state the server describes — the map, the generate
+form, "no map yet", "being set up", or "closed" — and derives none of them. A
 cluster is drawn from the game's seed, so `is_set_up` decides whether there is
 anything to generate from, and the form's settings arrive as `options`, present
-only when it could actually be submitted.
+only for a caller who could actually submit them. **A player never receives
+`options` at any stage**, so there is no form for this page to decide to hide;
+what is left is `is_gm`, and it is used for wording alone — "you have not
+generated this yet" and "it has not been generated yet" are one fact told to two
+readers.
 
 **The form holds no defaults and no bounds of its own.** The generator
 catalogue, the starting values, and the ranges all come from
