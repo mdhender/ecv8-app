@@ -16,6 +16,10 @@ Router.map(function () {
   // a player returns to, reloads, and links to, not a panel inside a list.
   this.route('games', function () {
     this.route('detail', { path: '/:game_id' });
+    // A sibling of detail rather than a child of it, because the map is a page
+    // of its own — a game master returns to it, and a hundred stelliums is not
+    // a panel to hang off the page a game is started from.
+    this.route('cluster', { path: '/:game_id/cluster' });
   });
 
   this.route('admin', function () {

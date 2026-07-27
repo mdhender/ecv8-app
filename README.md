@@ -189,6 +189,7 @@ Two consequences worth knowing:
 | `/dashboard`          | authenticated  | The player's games.                                           |
 | `/games`              | authenticated  | The games you are seated at.                                  |
 | `/games/:id`          | authenticated  | One game: its state or setup form, plus the roster for a GM.  |
+| `/games/:id/cluster`  | authenticated  | The game's map, or the form a game master generates it with.  |
 | `/profile`            | authenticated  | Display name, time zone, password.                            |
 | `/admin`              | administrator  | Section shell; redirects to accounts.                         |
 | `/admin/accounts`     | administrator  | List, filter, invite.                                         |
@@ -229,6 +230,32 @@ a game master's row offers no controls, matching the server's rule that a GM
 seat is an administrator's business. The missing controls are replaced by a
 sentence saying who can change that seat: a control that is merely absent reads
 as a bug, while a sentence reads as a rule.
+
+**`/games/:id/cluster` is a sibling of the detail route, not a child of it.** A
+game's map is a page a game master returns to, and a hundred stelliums is not a
+panel to hang off the page a game is started from. It has no game-master guard
+either, for the same reason nothing else under `/games` does: the endpoint
+behind it is the game master's, so a player at the same table is answered `403`
+and an unseated account `404`, and the error route renders both. The link to it
+appears only on a game master's copy of `/games/:id`, which is presentation and
+protects nothing.
+
+The page renders whichever of four states the server describes — the map, the
+generate form, "not set up yet", or "closed" — and derives none of them. A
+cluster is drawn from the game's seed, so `is_set_up` decides whether there is
+anything to generate from, and the form's settings arrive as `options`, present
+only when it could actually be submitted.
+
+**The form holds no defaults and no bounds of its own.** The generator
+catalogue, the starting values, and the ranges all come from
+`internal/engine/generators` by way of that response, exactly as `default_seed`
+does for the setup form. A default duplicated in the browser would disagree with
+the server the first time the engine changed its mind; a range duplicated here
+would refuse a value the server accepts, and only for people using this page.
+
+Its numbers are JSON numbers rather than the strings the seed uses. That is not
+an inconsistency: a seed word is a full-range `uint64` that a JavaScript double
+would round, while a radius stops at 1024 and a stellium count at 10000.
 
 **Redirects are validated.** Ember Simple Auth records the page an anonymous
 visitor asked for and returns them to it after signing in. That destination comes
